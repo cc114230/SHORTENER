@@ -1,0 +1,24 @@
+type ConvertRequset {
+	LongUrl string `json:"longUrl" validate:"required"`
+}
+
+type ConvertResponse {
+	ShortUrl string `json:"shortUrl"`
+}
+
+type ShowRequset {
+	ShortUrl string `path:"shortUrl" validate:"required"`
+}
+
+type ShowResponse {
+	LongUrl string `json:"longUrl"`
+}
+
+service shortener-api{
+
+	@handler ConvertHandler
+	post /convert(ConvertRequset) returns(ConvertResponse)
+
+	@handler ShowHandler
+	get /:shortUrl(ShowRequset) returns(ShowResponse)
+}
