@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"SHORTENER/internal/common/errorx"
 	"SHORTENER/internal/svc"
 	"SHORTENER/internal/types"
 	"SHORTENER/model"
@@ -10,7 +11,6 @@ import (
 	"SHORTENER/pkg/urltool"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -39,7 +39,8 @@ func (l *ConvertLogic) Convert(req *types.ConvertRequset) (resp *types.ConvertRe
 	// 1.2输入的长链接是能请求通的网址
 	//http.Get(req.LongUrl)
 	if ok := connect.Get(req.LongUrl); !ok {
-		return nil, errors.New("无效的链接")
+		//return nil, errors.New("无效的链接")
+		return nil, errorx.NewCodeError(errorx.InvalidUrl, "无效的链接", nil)
 	}
 	// 1.3判断之前是否已经转链过（数据库中是否已存在该长链接）
 	// 1.3.1 给长链接生成md5
@@ -48,7 +49,8 @@ func (l *ConvertLogic) Convert(req *types.ConvertRequset) (resp *types.ConvertRe
 	u, err := l.svcCtx.ShortUrlModel.FindOneByMd5(l.ctx, sql.NullString{String: md5Value, Valid: true})
 	if err != sqlx.ErrNotFound {
 		if err == nil {
-			return nil, fmt.Errorf("该链接已被转为%s", u.Surl.String)
+			//return nil, fmt.Errorf("该链接已被转为%s", u.Surl.String)
+			return nil, errorx.NewCodeError(errorx.IsAlreadyConvert, "该链接已被转链", l.svcCtx.Config.ShortDomain+"/"+u.Surl.String)
 		}
 		logx.Errorw("ShortUrlModel.FindOneByMd5 failed", logx.LogField{Key: "err", Value: err.Error()})
 		return nil, err
@@ -65,7 +67,8 @@ func (l *ConvertLogic) Convert(req *types.ConvertRequset) (resp *types.ConvertRe
 	_, err = l.svcCtx.ShortUrlModel.FindOneBySurl(l.ctx, sql.NullString{String: basePath, Valid: true})
 	if err != sqlx.ErrNotFound {
 		if err == nil {
-			return nil, errors.New("该链接已经是短链了")
+			//return nil, errors.New("该链接已经是短链了")
+			return nil, errorx.NewCodeError(errorx.IsAlreadyShortUrl, "该链接已经是短链了", nil)
 		}
 		logx.Errorw("ShortUrlModel.FindOneBySurl failed", logx.LogField{Key: "err", Value: err.Error()})
 		return nil, err

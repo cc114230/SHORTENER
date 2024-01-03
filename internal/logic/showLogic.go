@@ -1,11 +1,11 @@
 package logic
 
 import (
+	"SHORTENER/internal/common/errorx"
 	"SHORTENER/internal/svc"
 	"SHORTENER/internal/types"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -38,7 +38,8 @@ func (l *ShowLogic) Show(req *types.ShowRequset) (resp *types.ShowResponse, err 
 	}
 	// 不存在短链接直接返回
 	if !exist {
-		return nil, errors.New("404")
+		//return nil, errors.New("404")
+		return nil, errorx.NewCodeError(errorx.PageNotFound, "404", nil)
 	}
 	fmt.Println("开始查询缓存和DB...")
 	// 1.1 查询数据库之前可增加缓存层
@@ -46,7 +47,8 @@ func (l *ShowLogic) Show(req *types.ShowRequset) (resp *types.ShowResponse, err 
 	u, err := l.svcCtx.ShortUrlModel.FindOneBySurl(l.ctx, sql.NullString{String: req.ShortUrl, Valid: true})
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New("404")
+			//return nil, errors.New("404")
+			return nil, errorx.NewCodeError(errorx.PageNotFound, "404", nil)
 		}
 		logx.Errorw("ShortUrlModel.FindOneBySurl failed", logx.LogField{Value: err.Error(), Key: "err"})
 		return nil, err
