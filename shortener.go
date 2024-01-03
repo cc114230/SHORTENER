@@ -2,6 +2,7 @@ package main
 
 import (
 	"SHORTENER/internal/common/errorx"
+	middleware "SHORTENER/internal/common/middlewares"
 	"flag"
 	"fmt"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -25,7 +26,7 @@ func main() {
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
-
+	server.Use(middleware.NewCorsMiddleware().Handle)
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 	// 自定义错误
